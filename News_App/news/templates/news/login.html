@@ -1,0 +1,67 @@
+{% extends "news/base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+
+                    <h2 class="text-center mb-4">Login</h2>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="id_username"
+                                   class="form-label">
+                                Username
+                            </label>
+                            <input
+                                type="text"
+                                name="username"
+                                id="id_username"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_password"
+                                   class="form-label">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                name="password"
+                                id="id_password"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                Your username or password is incorrect.
+                            </div>
+                        {% endif %}
+
+                        <button type="submit"
+                                class="btn btn-dark w-100">
+                            Login
+                        </button>
+                    </form>
+		    <p class="text-center mt-3 mb-0">
+    			Don't have an account?
+    			<a href="{% url 'register' %}">Register here</a>
+		    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

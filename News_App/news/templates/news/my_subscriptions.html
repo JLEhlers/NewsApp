@@ -1,0 +1,64 @@
+{% extends "news/base.html" %}
+
+{% block title %}My Subscriptions{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">My Subscriptions</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h4 class="mb-3">Publishers</h4>
+
+            {% for publisher in publishers %}
+                <div class="border-bottom py-2">
+                    <strong>{{ publisher.name }}</strong>
+                    <p class="mb-2">
+                        {{ publisher.description|default:"No description available." }}
+                    </p>
+                    <form method="post"
+                          action="{% url 'unsubscribe_publisher' publisher.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-secondary"
+                                type="submit">
+                            Unsubscribe
+                        </button>
+                    </form>
+                </div>
+            {% empty %}
+                <p>You are not subscribed to any publishers yet.</p>
+                <a href="{% url 'publisher_list' %}"
+                   class="btn btn-primary btn-sm">
+                    Browse Publishers
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="mb-3">Journalists</h4>
+
+            {% for journalist in journalists %}
+                <div class="border-bottom py-2">
+                    <strong>{{ journalist.username }}</strong>
+                    <form method="post"
+                          action="{% url 'unsubscribe_journalist' journalist.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-secondary mt-2"
+                                type="submit">
+                            Unsubscribe
+                        </button>
+                    </form>
+                </div>
+            {% empty %}
+                <p>You are not subscribed to any journalists yet.</p>
+                <a href="{% url 'journalist_list' %}"
+                   class="btn btn-primary btn-sm">
+                    Browse Journalists
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

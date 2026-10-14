@@ -1,0 +1,50 @@
+{% extends "news/base.html" %}
+
+{% block title %}Create Article{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <h2 class="mb-4">Create Article</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="title" class="form-label">
+                    Article Title
+                </label>
+                <input type="text"
+                       id="title"
+                       name="title"
+                       class="form-control"
+                       required>
+            </div>
+
+            <div class="mb-3">
+                <label for="content" class="form-label">
+                    Article Content
+                </label>
+                <textarea id="content"
+                          name="content"
+                          class="form-control"
+                          rows="8"
+                          required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-dark">
+                Submit Article
+            </button>
+
+            <a href="{% url 'dashboard' %}"
+               class="btn btn-outline-dark">
+                Cancel
+            </a>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

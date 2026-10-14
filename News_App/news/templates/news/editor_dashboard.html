@@ -1,0 +1,24 @@
+{% extends "news/base.html" %}
+
+{% block title %}Editor Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <h2 class="mb-3">Editor Dashboard</h2>
+
+        <p class="text-muted">
+            Review submitted articles and approve content for publication.
+        </p>
+
+        <a href="{% url 'review_articles' %}"
+           class="btn btn-dark mt-3">
+            Review Articles
+        </a>
+
+    </div>
+</div>
+
+{% endblock %}

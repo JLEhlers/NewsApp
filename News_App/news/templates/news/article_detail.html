@@ -1,0 +1,33 @@
+{% extends "news/base.html" %}
+
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <h2 class="mb-3">{{ article.title }}</h2>
+
+        <p class="text-muted">
+            Published {{ article.created_at|date:"d M Y" }}
+            {% if article.author %}
+                by {{ article.author.username }}
+            {% elif article.publisher %}
+                by {{ article.publisher.name }}
+            {% endif %}
+        </p>
+
+        <hr>
+
+        <div class="mb-4">{{ article.content|linebreaks }}</div>
+
+        <a href="{% url 'article_list' %}"
+           class="btn btn-outline-dark">
+            Back to Articles
+        </a>
+
+    </div>
+</div>
+
+{% endblock %}

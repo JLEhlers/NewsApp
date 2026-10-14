@@ -1,0 +1,56 @@
+{% extends "news/base.html" %}
+
+{% block title %}Articles{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <h2 class="mb-4">Latest Articles</h2>
+
+        {% if articles %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Date Published</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for article in articles %}
+                        <tr>
+                            <td>{{ article.title }}</td>
+                            <td>
+                                {% if article.author %}
+                                    {{ article.author.username }}
+                                {% elif article.publisher %}
+                                    {{ article.publisher.name }}
+                                {% else %}
+                                    Not available
+                                {% endif %}
+                            </td>
+                            <td>{{ article.created_at|date:"d M Y" }}</td>
+                            <td>
+                                <a href="{% url 'article_detail' article.id %}"
+                                   class="btn btn-dark btn-sm">
+                                    Read Article
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No approved articles are available.</p>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

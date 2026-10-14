@@ -1,0 +1,65 @@
+{% extends "news/base.html" %}
+
+{% block title %}Review Articles{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <h2 class="mb-4">Articles Awaiting Approval</h2>
+
+        {% if articles %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Date Submitted</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for article in articles %}
+                        <tr>
+                            <td>{{ article.title }}</td>
+                            <td>
+                                {% if article.author %}
+                                    {{ article.author.username }}
+                                {% elif article.publisher %}
+                                    {{ article.publisher.name }}
+                                {% endif %}
+                            </td>
+                            <td>{{ article.created_at|date:"d M Y" }}</td>
+                            <td>
+                                <form method="POST"
+                                      action="{% url 'approve_article' article.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="btn btn-success btn-sm">
+                                        Approve
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">
+                There are no articles waiting for approval.
+            </p>
+        {% endif %}
+
+        <a href="{% url 'dashboard' %}"
+           class="btn btn-outline-dark mt-3">
+            Back to Dashboard
+        </a>
+
+    </div>
+</div>
+
+{% endblock %}

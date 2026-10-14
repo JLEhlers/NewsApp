@@ -1,0 +1,36 @@
+{% extends "news/base.html" %}
+
+{% block title %}Journalist Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <h2 class="mb-3">Journalist Dashboard</h2>
+
+        <p class="text-muted">
+            Create articles and submit them for editorial approval.
+        </p>
+
+        <div class="d-flex flex-wrap gap-2 mt-4">
+            <a href="{% url 'create_article' %}"
+               class="btn btn-dark">
+                Create Article
+            </a>
+
+            <a href="{% url 'article_list' %}"
+               class="btn btn-outline-dark">
+                View Published Articles
+            </a>
+
+            <a href="{% url 'newsletter_list' %}"
+               class="btn btn-outline-dark">
+                View Newsletters
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

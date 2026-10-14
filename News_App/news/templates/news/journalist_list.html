@@ -1,0 +1,45 @@
+{% extends "news/base.html" %}
+
+{% block title %}Journalists{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Independent Journalists</h2>
+
+    <div class="row">
+        {% for journalist in journalists %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        {{ journalist.username }}
+                    </h5>
+
+                    {% if user.role == "reader" %}
+                        {% if journalist.id in subscribed_journalist_ids %}
+                        <form method="post"
+                              action="{% url 'unsubscribe_journalist' journalist.id %}">
+                            {% csrf_token %}
+                            <button class="btn btn-outline-secondary" type="submit">
+                                Unsubscribe
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post"
+                              action="{% url 'subscribe_journalist' journalist.id %}">
+                            {% csrf_token %}
+                            <button class="btn btn-primary" type="submit">
+                                Subscribe
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No journalists are available yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
