@@ -1,13 +1,17 @@
 {% extends "news/base.html" %}
 
-{% block title %}Create Article{% endblock %}
+{% block title %}
+    {% if article %}Edit Article{% else %}Create Article{% endif %}
+{% endblock %}
 
 {% block content %}
 
 <div class="card shadow-sm">
     <div class="card-body">
 
-        <h2 class="mb-4">Create Article</h2>
+        <h2 class="mb-4">
+            {% if article %}Edit Article{% else %}Create Article{% endif %}
+        </h2>
 
         <form method="POST">
             {% csrf_token %}
@@ -20,6 +24,7 @@
                        id="title"
                        name="title"
                        class="form-control"
+                       value="{{ article.title|default:'' }}"
                        required>
             </div>
 
@@ -31,11 +36,11 @@
                           name="content"
                           class="form-control"
                           rows="8"
-                          required></textarea>
+                          required>{{ article.content|default:'' }}</textarea>
             </div>
 
             <button type="submit" class="btn btn-dark">
-                Submit Article
+                {% if article %}Update Article{% else %}Submit Article{% endif %}
             </button>
 
             <a href="{% url 'dashboard' %}"

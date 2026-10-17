@@ -7,7 +7,18 @@
 <div class="card shadow-sm">
     <div class="card-body">
 
-        <h2 class="mb-4">Newsletters</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Newsletters</h2>
+
+            {% if user.is_authenticated %}
+                {% if user.role == "journalist" or user.role == "editor" %}
+                    <a href="{% url 'create_newsletter' %}"
+                       class="btn btn-dark">
+                        Create Newsletter
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
 
         {% if newsletters %}
             <div class="row g-3">
@@ -15,6 +26,7 @@
                 <div class="col-md-6">
                     <div class="card h-100 border">
                         <div class="card-body">
+
                             <h5 class="card-title">
                                 {{ newsletter.title }}
                             </h5>
@@ -23,12 +35,58 @@
                                 Created {{ newsletter.created_at|date:"d M Y" }}
                             </p>
 
-                            <p>{{ newsletter.description|truncatewords:25 }}</p>
+                            {% if newsletter.author %}
+                                <p class="text-muted small">
+                                    By {{ newsletter.author.username }}
+                                </p>
+                            {% endif %}
+
+                            <p>
+                                {{ newsletter.description|truncatewords:25 }}
+                            </p>
 
                             <a href="{% url 'newsletter_detail' newsletter.id %}"
-                               class="btn btn-dark btn-sm">
+                               class="btn btn-dark btn-sm mb-1">
                                 View Newsletter
                             </a>
+
+                            {% if user.is_authenticated %}
+                                {% if user.role == "editor" %}
+                                    <a href="{% url 'edit_newsletter' newsletter.id %}"
+                                       class="btn btn-warning btn-sm mb-1">
+                                        Edit
+                                    </a>
+
+                                    <form method="POST"
+                                          action="{% url 'delete_newsletter' newsletter.id %}"
+                                          class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm mb-1"
+                                                onclick="return confirm('Are you sure you want to delete this newsletter?');">
+                                            Delete
+                                        </button>
+                                    </form>
+
+                                {% elif user.role == "journalist" and newsletter.author_id == user.id %}
+                                    <a href="{% url 'edit_newsletter' newsletter.id %}"
+                                       class="btn btn-warning btn-sm mb-1">
+                                        Edit
+                                    </a>
+
+                                    <form method="POST"
+                                          action="{% url 'delete_newsletter' newsletter.id %}"
+                                          class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm mb-1"
+                                                onclick="return confirm('Are you sure you want to delete this newsletter?');">
+                                            Delete
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+
                         </div>
                     </div>
                 </div>
@@ -37,6 +95,11 @@
         {% else %}
             <p class="text-muted">No newsletters are available.</p>
         {% endif %}
+
+        <a href="{% url 'dashboard' %}"
+           class="btn btn-outline-dark mt-4">
+            Back to Dashboard
+        </a>
 
     </div>
 </div>

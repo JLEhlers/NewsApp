@@ -25,6 +25,7 @@
                         {% for article in articles %}
                         <tr>
                             <td>{{ article.title }}</td>
+
                             <td>
                                 {% if article.author %}
                                     {{ article.author.username }}
@@ -34,12 +35,53 @@
                                     Not available
                                 {% endif %}
                             </td>
-                            <td>{{ article.created_at|date:"d M Y" }}</td>
+
+                            <td>
+                                {{ article.created_at|date:"d M Y" }}
+                            </td>
+
                             <td>
                                 <a href="{% url 'article_detail' article.id %}"
-                                   class="btn btn-dark btn-sm">
+                                   class="btn btn-dark btn-sm mb-1">
                                     Read Article
                                 </a>
+
+                                {% if user.is_authenticated %}
+                                    {% if user.role == "editor" or user.groups.all %}
+                                        <a href="{% url 'edit_article' article.id %}"
+                                           class="btn btn-warning btn-sm mb-1">
+                                            Edit
+                                        </a>
+
+                                        <form method="POST"
+                                              action="{% url 'delete_article' article.id %}"
+                                              class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="btn btn-danger btn-sm mb-1"
+                                                    onclick="return confirm('Are you sure you want to delete this article?');">
+                                                Delete
+                                            </button>
+                                        </form>
+
+                                    {% elif user.role == "journalist" and article.author_id == user.id %}
+                                        <a href="{% url 'edit_article' article.id %}"
+                                           class="btn btn-warning btn-sm mb-1">
+                                            Edit
+                                        </a>
+
+                                        <form method="POST"
+                                              action="{% url 'delete_article' article.id %}"
+                                              class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="btn btn-danger btn-sm mb-1"
+                                                    onclick="return confirm('Are you sure you want to delete this article?');">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -47,8 +89,15 @@
                 </table>
             </div>
         {% else %}
-            <p class="text-muted">No approved articles are available.</p>
+            <p class="text-muted">
+                No approved articles are available.
+            </p>
         {% endif %}
+
+        <a href="{% url 'dashboard' %}"
+           class="btn btn-outline-dark mt-3">
+            Back to Dashboard
+        </a>
 
     </div>
 </div>

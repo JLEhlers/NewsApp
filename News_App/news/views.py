@@ -590,3 +590,182 @@ def unsubscribe_journalist(request, journalist_id):
     )
 
     return redirect("journalist_list")
+
+
+# Edit an article.
+@login_required
+def edit_article(request, article_id):
+    """Allow editors or the article's journalist to edit an article."""
+    article = get_object_or_404(Article, id=article_id)
+
+    is_editor = (
+        request.user.role == "editor"
+        or request.user.groups.filter(name="Editor").exists()
+    )
+
+    is_owner = article.author_id == request.user.id
+
+    if not is_editor and not (
+        request.user.role == "journalist" and is_owner
+    ):
+        return HttpResponseForbidden("You cannot edit this article.")
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        content = request.POST.get("content", "").strip()
+
+        if title and content:
+            article.title = title
+            article.content = content
+            article.save()
+
+            messages.success(request, "Article updated.")
+            return redirect("dashboard")
+
+        messages.error(request, "Enter a title and content.")
+
+    return render(
+        request,
+        "news/article_form.html",
+        {"article": article},
+    )
+
+
+# Delete an article.
+@login_required
+@require_POST
+def delete_article(request, article_id):
+    """Allow editors or the article's journalist to delete an article."""
+    article = get_object_or_404(Article, id=article_id)
+
+    is_editor = (
+        request.user.role == "editor"
+        or request.user.groups.filter(name="Editor").exists()
+    )
+
+    is_owner = article.author_id == request.user.id
+
+    if not is_editor and not (
+        request.user.role == "journalist" and is_owner
+    ):
+        return HttpResponseForbidden("You cannot delete this article.")
+
+    article.delete()
+    messages.success(request, "Article deleted.")
+    return redirect("dashboard")
+
+
+# Create a newsletter.
+@login_required
+def create_newsletter(request):
+    """Allow journalists and editors to create newsletters."""
+    is_editor = (
+        request.user.role == "editor"
+        or request.user.groups.filter(name="Editor").exists()
+    )
+
+    if request.user.role != "journalist" and not is_editor:
+        return HttpResponseForbidden(
+            "You cannot create newsletters."
+        )
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        description = request.POST.get("description", "").strip()
+        article_ids = request.POST.getlist("articles")
+
+        if not title or not description:
+            messages.error(request, "Enter a title and description.")
+        else:
+            newsletter = Newsletter.objects.create(
+                title=title,
+                description=description,
+                author=request.user,
+            )
+            newsletter.articles.set(
+                Article.objects.filter(id__in=article_ids)
+            )
+
+            messages.success(request, "Newsletter created.")
+            return redirect("dashboard")
+
+    return render(
+        request,
+        "news/newsletter_form.html",
+        {
+            "articles": Article.objects.filter(approved=True),
+        },
+    )
+
+
+# Edit a newsletter.
+@login_required
+def edit_newsletter(request, newsletter_id):
+    """Allow editors or the newsletter's journalist to edit it."""
+    newsletter = get_object_or_404(Newsletter, id=newsletter_id)
+
+    is_editor = (
+        request.user.role == "editor"
+        or request.user.groups.filter(name="Editor").exists()
+    )
+
+    is_owner = newsletter.author_id == request.user.id
+
+    if not is_editor and not (
+        request.user.role == "journalist" and is_owner
+    ):
+        return HttpResponseForbidden("You cannot edit this newsletter.")
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        description = request.POST.get("description", "").strip()
+        article_ids = request.POST.getlist("articles")
+
+        if title and description:
+            newsletter.title = title
+            newsletter.description = description
+            newsletter.save()
+            newsletter.articles.set(
+                Article.objects.filter(id__in=article_ids)
+            )
+
+            messages.success(request, "Newsletter updated.")
+            return redirect("dashboard")
+
+        messages.error(request, "Enter a title and description.")
+
+    return render(
+        request,
+        "news/newsletter_form.html",
+        {
+            "newsletter": newsletter,
+            "articles": Article.objects.filter(approved=True),
+            "selected_articles": newsletter.articles.all(),
+        },
+    )
+
+
+# Delete a newsletter.
+@login_required
+@require_POST
+def delete_newsletter(request, newsletter_id):
+    """Allow editors or the newsletter's journalist to delete it."""
+    newsletter = get_object_or_404(Newsletter, id=newsletter_id)
+
+    is_editor = (
+        request.user.role == "editor"
+        or request.user.groups.filter(name="Editor").exists()
+    )
+
+    is_owner = newsletter.author_id == request.user.id
+
+    if not is_editor and not (
+        request.user.role == "journalist" and is_owner
+    ):
+        return HttpResponseForbidden(
+            "You cannot delete this newsletter."
+        )
+
+    newsletter.delete()
+    messages.success(request, "Newsletter deleted.")
+    return redirect("dashboard")

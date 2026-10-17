@@ -10,13 +10,33 @@
         <h2 class="mb-3">Editor Dashboard</h2>
 
         <p class="text-muted">
-            Review submitted articles and approve content for publication.
+            Review submitted articles, manage published content,
+            and manage newsletters.
         </p>
 
-        <a href="{% url 'review_articles' %}"
-           class="btn btn-dark mt-3">
-            Review Articles
-        </a>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+
+            <a href="{% url 'review_articles' %}"
+               class="btn btn-dark">
+                Review Articles
+            </a>
+
+            <a href="{% url 'article_list' %}"
+               class="btn btn-outline-dark">
+                Manage Articles
+            </a>
+
+            <a href="{% url 'newsletter_list' %}"
+               class="btn btn-outline-dark">
+                Manage Newsletters
+            </a>
+
+            <a href="{% url 'create_newsletter' %}"
+               class="btn btn-dark">
+                Create Newsletter
+            </a>
+
+        </div>
 
     </div>
 </div>

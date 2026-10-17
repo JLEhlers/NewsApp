@@ -11,13 +11,13 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = [
+        fields = [  # noqa: RUF012
             "id",
             "username",
             "email",
             "role",
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id"]  # noqa: RUF012
 
 
 class PublisherSerializer(serializers.ModelSerializer):
@@ -25,14 +25,14 @@ class PublisherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Publisher
-        fields = [
+        fields = [  # noqa: RUF012
             "id",
             "name",
             "description",
             "editors",
             "journalists",
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id"]  # noqa: RUF012
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -40,7 +40,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = [
+        fields = [  # noqa: RUF012
             "id",
             "title",
             "content",
@@ -49,7 +49,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             "created_at",
             "approved",
         ]
-        read_only_fields = ["id", "created_at", "approved"]
+        read_only_fields = ["id", "created_at", "approved"]  # noqa: RUF012
 
 
 class NewsletterSerializer(serializers.ModelSerializer):
@@ -57,7 +57,7 @@ class NewsletterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Newsletter
-        fields = [
+        fields = [  # noqa: RUF012
             "id",
             "title",
             "description",
@@ -65,4 +65,4 @@ class NewsletterSerializer(serializers.ModelSerializer):
             "author",
             "articles",
         ]
-        read_only_fields = ["id", "created_at"]
+        read_only_fields = ["id", "created_at"]  # noqa: RUF012

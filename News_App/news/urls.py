@@ -64,4 +64,29 @@ urlpatterns = [
         views.unsubscribe_journalist,
         name="unsubscribe_journalist",
     ),
+    path(
+        "articles/<int:article_id>/edit/",
+        views.edit_article,
+        name="edit_article",
+    ),
+    path(
+        "articles/<int:article_id>/delete/",
+        views.delete_article,
+        name="delete_article",
+    ),
+    path(
+        "newsletters/create/",
+        views.create_newsletter,
+        name="create_newsletter",
+    ),
+    path(
+        "newsletters/<int:newsletter_id>/edit/",
+        views.edit_newsletter,
+        name="edit_newsletter",
+    ),
+    path(
+        "newsletters/<int:newsletter_id>/delete/",
+        views.delete_newsletter,
+        name="delete_newsletter",
+    ),
 ]
