@@ -115,17 +115,14 @@ The News App is a Django web application that allows users to read, write, revie
 
 ## API Authentication
 
-The News App uses token authentication for API requests.
+The News App uses token authentication for protected REST API endpoints.
 
 1. Register a user or create one through the Django admin page.
-2. If required by your project, ensure the user has the appropriate role and permissions.
-3. Obtain an API token by sending a POST request to your configured token endpoint. For example, if your project uses Django REST Framework's standard token endpoint:
+2. Send a POST request to the token endpoint:
 
-   ```http
-   POST /api-token-auth/
-   ```
+   `http://127.0.0.1:8000/api/token/`
 
-   Include the username and password in the request body:
+3. Include your username and password in the JSON request body:
 
    ```json
    {
@@ -134,14 +131,29 @@ The News App uses token authentication for API requests.
    }
    ```
 
-4. If the request succeeds, the response should contain a token.
-5. Include the token in the header of authenticated API requests:
+4. If the credentials are valid, the API returns an authentication token:
 
-   ```http
-   Authorization: Token your_token_here
+   ```json
+   {
+       "token": "your_authentication_token"
+   }
    ```
 
-**Note:** The token endpoint must be configured in your project's `urls.py`. Check your URL configuration and use the actual endpoint if it differs from `/api-token-auth/`.
+5. Include the token in the `Authorization` header when accessing protected API endpoints:
+
+   ```http
+   Authorization: Token your_authentication_token
+   ```
+
+**Note:** The token endpoint is configured in `news/urls.py` using Django REST Framework's `obtain_auth_token` view. The endpoint requires a POST request with valid user credentials.
+
+## Running Tests
+
+Run the automated tests with:
+
+```bash
+python manage.py test news.tests
+```
 
 ## Running Tests
 
