@@ -1,5 +1,6 @@
 """Forms for the news application."""
 
+from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
 from .models import CustomUser
@@ -10,4 +11,5 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ("username", "role")
+        fields = ("username", "role", "email")
+        email = forms.EmailField(required=True)

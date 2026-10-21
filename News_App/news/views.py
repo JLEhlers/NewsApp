@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -72,7 +73,18 @@ def dashboard(request):
         return render(request, "news/editor_dashboard.html")
 
     if request.user.role == "journalist":
-        return render(request, "news/journalist_dashboard.html")
+        pending_articles = Article.objects.filter(
+            author=request.user,
+            approved=False,
+        ).order_by("-created_at")
+
+        return render(
+            request,
+            "news/journalist_dashboard.html",
+            {
+                "pending_articles": pending_articles,
+            },
+        )
 
     return HttpResponseForbidden("Invalid user role.")
 
@@ -175,32 +187,71 @@ def newsletter_detail(request, newsletter_id):
 # Allow journalists to create independent articles.
 
 @login_required
-@role_required("journalist")
 def create_article(request):
-    """Create an article written by the logged-in journalist."""
+    """Allow journalists to create independent or publisher articles."""
+
+    if request.user.role != "journalist":
+        return HttpResponseForbidden(
+            "Only journalists can create articles."
+        )
+
+    # Only show publishers that this journalist belongs to.
+    publishers = Publisher.objects.filter(
+        journalists=request.user
+    )
 
     if request.method == "POST":
-        title = request.POST.get("title")
-        content = request.POST.get("content")
+        title = request.POST.get("title", "").strip()
+        content = request.POST.get("content", "").strip()
+        publisher_id = request.POST.get("publisher", "").strip()
 
         if not title or not content:
-            messages.error(request, "Enter a title and content.")
-        else:
-            Article.objects.create(
-                title=title,
-                content=content,
-                author=request.user,
-                publisher=None,
-                approved=False,
-            )
-
-            messages.success(
+            return render(
                 request,
-                "Article created and submitted for approval.",
+                "news/article_form.html",
+                {
+                    "publishers": publishers,
+                    "error": "Title and content are required.",
+                },
             )
-            return redirect("article_list")
 
-    return render(request, "news/article_form.html")
+        selected_publisher = None
+
+        if publisher_id:
+            selected_publisher = publishers.filter(
+                id=publisher_id
+            ).first()
+
+            if selected_publisher is None:
+                return render(
+                    request,
+                    "news/article_form.html",
+                    {
+                        "publishers": publishers,
+                        "error": (
+                            "Please select a publisher "
+                            "you are affiliated with."
+                        ),
+                    },
+                )
+
+        Article.objects.create(
+            title=title,
+            content=content,
+            author=(
+                None if selected_publisher else request.user
+            ),
+            publisher=selected_publisher,
+            approved=False,
+        )
+
+        return redirect("article_list")
+
+    return render(
+        request,
+        "news/article_form.html",
+        {"publishers": publishers},
+    )
 
 
 # Allow editors to review and approve articles.
@@ -238,23 +289,24 @@ def approve_article(request, article_id):
     article.approved = True
     article.save(update_fields=["approved"])
 
-    # Find readers subscribed to this journalist or publisher.
-    subscribers = User.objects.filter(role="reader")
+    # Find readers subscribed to the journalist or publisher.
+    subscribers = User.objects.filter(
+        role="reader"
+    ).filter(
+        Q(journalist_subscriptions=article.author)
+        | Q(publisher_subscriptions=article.publisher)
+    ).exclude(
+        email__isnull=True
+    ).exclude(
+        email__exact=""
+    ).distinct()
 
-    if article.author_id:
-        subscribers = subscribers.filter(
-            journalist_subscriptions=article.author
-        )
-
-    elif article.publisher_id:
-        subscribers = subscribers.filter(
-            publisher_subscriptions=article.publisher
-        )
-
+    # Collect the valid email addresses.
     email_addresses = list(
-        subscribers.exclude(email="").values_list("email", flat=True)
+        subscribers.values_list("email", flat=True)
     )
 
+    # Send an email if subscribers have valid email addresses.
     if email_addresses:
         send_mail(
             subject=f"New article: {article.title}",
@@ -294,7 +346,6 @@ def approve_article(request, article_id):
 
 
 # REST API: list articles and create articles.
-
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -318,11 +369,35 @@ def api_article_list(request):
     serializer = ArticleSerializer(data=request.data)
 
     if serializer.is_valid():
-        article = serializer.save(
-            author=request.user,
-            publisher=None,
-            approved=False,
-        )
+        publisher = serializer.validated_data.get("publisher")
+
+        # Check that the journalist belongs to the selected publisher.
+        if publisher:
+            if not publisher.journalists.filter(
+                id=request.user.id
+            ).exists():
+                return Response(
+                    {
+                        "error": (
+                            "You are not affiliated with this publisher."
+                        )
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Publisher articles are associated with the publisher.
+            article = serializer.save(
+                author=None,
+                publisher=publisher,
+                approved=False,
+            )
+        else:
+            # Independent articles are associated with the journalist.
+            article = serializer.save(
+                author=request.user,
+                publisher=None,
+                approved=False,
+            )
 
         return Response(
             ArticleSerializer(article).data,
@@ -452,16 +527,21 @@ def api_approved(request):
     article = get_object_or_404(
         Article,
         id=article_id,
-        approved=True,
     )
 
-    return Response(
-        {
-            "message": "Approved article received by the API.",
-            "article_id": article.id,
-        },
-        status=status.HTTP_200_OK,
-    )
+    if not article.approved:
+        return Response(
+            {"error": "Article is not approved."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+        return Response(
+            {
+                "message": "Approved article received by the API.",
+                "article_id": article.id,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 @login_required
@@ -596,6 +676,7 @@ def unsubscribe_journalist(request, journalist_id):
 @login_required
 def edit_article(request, article_id):
     """Allow editors or the article's journalist to edit an article."""
+
     article = get_object_or_404(Article, id=article_id)
 
     is_editor = (
@@ -610,24 +691,68 @@ def edit_article(request, article_id):
     ):
         return HttpResponseForbidden("You cannot edit this article.")
 
+    # Only show publishers linked to the logged-in journalist.
+    publishers = Publisher.objects.none()
+
+    if request.user.role == "journalist":
+        publishers = Publisher.objects.filter(
+            journalists=request.user
+        )
+
     if request.method == "POST":
         title = request.POST.get("title", "").strip()
         content = request.POST.get("content", "").strip()
+        publisher_id = request.POST.get("publisher", "").strip()
 
-        if title and content:
+        if not title or not content:
+            messages.error(request, "Enter a title and content.")
+        else:
+            selected_publisher = None
+
+            if publisher_id:
+                selected_publisher = publishers.filter(
+                    id=publisher_id
+                ).first()
+
+                if selected_publisher is None:
+                    messages.error(
+                        request,
+                        "Select a publisher you are affiliated with.",
+                    )
+                    return render(
+                        request,
+                        "news/article_form.html",
+                        {
+                            "article": article,
+                            "publishers": publishers,
+                        },
+                    )
+
             article.title = title
             article.content = content
+
+            # Keep the article linked to either its journalist
+            # or its selected publisher, not both.
+            if request.user.role == "journalist":
+                if selected_publisher:
+                    article.author = None
+                    article.publisher = selected_publisher
+                else:
+                    article.author = request.user
+                    article.publisher = None
+
             article.save()
 
             messages.success(request, "Article updated.")
             return redirect("dashboard")
 
-        messages.error(request, "Enter a title and content.")
-
     return render(
         request,
         "news/article_form.html",
-        {"article": article},
+        {
+            "article": article,
+            "publishers": publishers,
+        },
     )
 
 

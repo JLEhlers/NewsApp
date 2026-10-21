@@ -13,40 +13,93 @@
             {% if article %}Edit Article{% else %}Create Article{% endif %}
         </h2>
 
+        {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+        {% endif %}
+
         <form method="POST">
             {% csrf_token %}
 
+            <!-- Article title -->
             <div class="mb-3">
                 <label for="title" class="form-label">
                     Article Title
                 </label>
-                <input type="text"
-                       id="title"
-                       name="title"
-                       class="form-control"
-                       value="{{ article.title|default:'' }}"
-                       required>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    class="form-control"
+                    value="{{ article.title|default:'' }}"
+                    required
+                >
             </div>
 
+            <!-- Article content -->
             <div class="mb-3">
                 <label for="content" class="form-label">
                     Article Content
                 </label>
-                <textarea id="content"
-                          name="content"
-                          class="form-control"
-                          rows="8"
-                          required>{{ article.content|default:'' }}</textarea>
+                <textarea
+                    id="content"
+                    name="content"
+                    class="form-control"
+                    rows="8"
+                    required
+                >{{ article.content|default:'' }}</textarea>
             </div>
 
+            <!-- Publisher selection -->
+            <div class="mb-4">
+                <label for="publisher" class="form-label">
+                    Publisher
+                </label>
+
+                <select
+                    id="publisher"
+                    name="publisher"
+                    class="form-select"
+                >
+                    <option value="">
+                        Independent article
+                    </option>
+
+                    {% for publisher in publishers %}
+                        <option
+                            value="{{ publisher.id }}"
+                            {% if article and article.publisher_id == publisher.id %}
+                                selected
+                            {% elif request.POST.publisher == publisher.id|stringformat:"s" %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ publisher.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <div class="form-text">
+                    Select a publisher you are affiliated with,
+                    or leave this blank for an independent article.
+                </div>
+            </div>
+
+            <!-- Form buttons -->
             <button type="submit" class="btn btn-dark">
-                {% if article %}Update Article{% else %}Submit Article{% endif %}
+                {% if article %}
+                    Update Article
+                {% else %}
+                    Submit Article
+                {% endif %}
             </button>
 
             <a href="{% url 'dashboard' %}"
                class="btn btn-outline-dark">
                 Cancel
             </a>
+
         </form>
 
     </div>

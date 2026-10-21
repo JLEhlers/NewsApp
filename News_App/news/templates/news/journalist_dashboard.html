@@ -4,6 +4,7 @@
 
 {% block content %}
 
+<!-- Journalist Dashboard -->
 <div class="card shadow-sm">
     <div class="card-body">
 
@@ -37,6 +38,58 @@
             </a>
 
         </div>
+
+    </div>
+</div>
+
+<!-- Pending Articles -->
+<div class="card shadow-sm mt-4">
+    <div class="card-body">
+
+        <h3 class="mb-3">My Pending Articles</h3>
+
+        <p class="text-muted">
+            These articles are waiting for editorial approval.
+            You can edit or delete them before publication.
+        </p>
+
+        {% for article in pending_articles %}
+
+            <div class="border rounded p-3 mb-3">
+
+                <h5>{{ article.title }}</h5>
+
+                <p class="text-muted mb-2">
+                    Submitted: {{ article.created_at|date:"d M Y, H:i" }}
+                </p>
+
+                <span class="badge bg-warning text-dark">
+                    Awaiting Review
+                </span>
+
+                <div class="d-flex gap-2 mt-3">
+
+                    <a href="{% url 'edit_article' article.id %}"
+                       class="btn btn-sm btn-outline-primary">
+                        Edit
+                    </a>
+
+                    <a href="{% url 'delete_article' article.id %}"
+                       class="btn btn-sm btn-outline-danger">
+                        Delete
+                    </a>
+
+                </div>
+
+            </div>
+
+        {% empty %}
+
+            <p class="text-muted mb-0">
+                You have no articles awaiting review.
+            </p>
+
+        {% endfor %}
 
     </div>
 </div>

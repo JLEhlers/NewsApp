@@ -9,49 +9,82 @@
 
         <h2 class="mb-4">Articles Awaiting Approval</h2>
 
+        <p class="text-muted">
+            Review submitted articles before publication.
+            You can approve, edit, or delete each article.
+        </p>
+
         {% if articles %}
             <div class="table-responsive">
-                <table class="table table-bordered table-hover">
+                <table class="table table-bordered table-hover align-middle">
+
                     <thead class="table-dark">
                         <tr>
                             <th>Title</th>
-                            <th>Author</th>
+                            <th>Author / Publisher</th>
                             <th>Date Submitted</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         {% for article in articles %}
-                        <tr>
-                            <td>{{ article.title }}</td>
-                            <td>
-                                {% if article.author %}
-                                    {{ article.author.username }}
-                                {% elif article.publisher %}
-                                    {{ article.publisher.name }}
-                                {% endif %}
-                            </td>
-                            <td>{{ article.created_at|date:"d M Y" }}</td>
-                            <td>
-                                <form method="POST"
-                                      action="{% url 'approve_article' article.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                            class="btn btn-success btn-sm">
-                                        Approve
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td>{{ article.title }}</td>
+
+                                <td>
+                                    {% if article.author %}
+                                        {{ article.author.username }}
+                                    {% elif article.publisher %}
+                                        {{ article.publisher.name }}
+                                    {% else %}
+                                        Unknown
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {{ article.created_at|date:"d M Y" }}
+                                </td>
+
+                                <td>
+                                    <div class="d-flex flex-wrap gap-2">
+
+                                        <!-- Approve article -->
+                                        <form method="POST"
+                                              action="{% url 'approve_article' article.id %}">
+                                            {% csrf_token %}
+
+                                            <button type="submit"
+                                                    class="btn btn-success btn-sm">
+                                                Approve
+                                            </button>
+                                        </form>
+
+                                        <!-- Edit article -->
+                                        <a href="{% url 'edit_article' article.id %}"
+                                           class="btn btn-primary btn-sm">
+                                            Edit
+                                        </a>
+
+                                        <!-- Delete article -->
+                                        <a href="{% url 'delete_article' article.id %}"
+                                           class="btn btn-danger btn-sm">
+                                            Delete
+                                        </a>
+
+                                    </div>
+                                </td>
+                            </tr>
                         {% endfor %}
                     </tbody>
+
                 </table>
             </div>
+
         {% else %}
-            <p class="text-muted">
+            <div class="alert alert-info">
                 There are no articles waiting for approval.
-            </p>
+            </div>
         {% endif %}
 
         <a href="{% url 'dashboard' %}"

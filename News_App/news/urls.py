@@ -1,5 +1,6 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
+from rest_framework.authtoken.views import obtain_auth_token
 
 from . import views
 
@@ -89,4 +90,5 @@ urlpatterns = [
         views.delete_newsletter,
         name="delete_newsletter",
     ),
+    path("api/token/", obtain_auth_token, name="api_token"),
 ]

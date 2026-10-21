@@ -28,18 +28,21 @@ class NewsAPITests(APITestCase):
         self.reader = User.objects.create_user(
             username="test_reader",
             password="TestPassword123!",
+            email="reader@example.com",
             role="reader",
         )
 
         self.journalist = User.objects.create_user(
             username="test_journalist",
             password="TestPassword123!",
+            email="journalist@example.com",
             role="journalist",
         )
 
         self.other_journalist = User.objects.create_user(
             username="other_journalist",
             password="TestPassword123!",
+            email="other_journalist@example.com",
             role="journalist",
         )
 
