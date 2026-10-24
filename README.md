@@ -147,6 +147,46 @@ The News App uses token authentication for protected REST API endpoints.
 
 **Note:** The token endpoint is configured in `news/urls.py` using Django REST Framework's `obtain_auth_token` view. The endpoint requires a POST request with valid user credentials.
 
+## Publisher Management
+
+The News App allows authorised editors and Django administrators
+to manage publishers through the application interface.
+
+### Managing Publishers
+
+1. Log in with an editor account or a Django superuser account.
+2. Open the Manage Publishers page.
+3. Select Create Publisher.
+4. Enter the publisher's name and description.
+5. Select the existing editors and journalists affiliated with
+   the publisher.
+6. Submit the form to create the publisher.
+7. Return to Manage Publishers to review the publisher and its
+   assigned staff.
+
+### User Roles and Staff Assignments
+
+- Readers can browse articles and subscribe to publishers and
+  journalists.
+- Journalists can create independent articles or articles on
+  behalf of publishers with which they are affiliated.
+- Editors can review and approve articles and manage publishers.
+- Django superusers can access publisher management regardless
+  of their application role.
+
+Editors and journalists must already have registered accounts
+before they can be assigned to a publisher. The publisher form
+only allows users with the appropriate role to be selected.
+
+### Access Control
+
+Publisher management views require authentication. Only users
+with the editor role, membership in the Editor group, or Django
+superuser privileges can access the management and creation pages.
+
+The publisher creation form uses Django CSRF protection and
+validates the selected staff members.
+
 ## Running Tests
 
 Run the automated tests with:
