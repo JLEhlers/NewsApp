@@ -1,0 +1,50 @@
+{% extends "news/base.html" %}
+
+{% block title %}Manage Publishers{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="d-flex justify-content-between
+                    align-items-center flex-wrap gap-2">
+            <h2>Manage Publishers</h2>
+
+            <a href="{% url 'create_publisher' %}"
+               class="btn btn-dark">
+                Create Publisher
+            </a>
+        </div>
+
+        <p class="text-muted">
+            View publishers and manage their affiliated staff.
+        </p>
+
+        {% for publisher in publishers %}
+            <div class="border rounded p-3 mb-3">
+                <h5>{{ publisher.name }}</h5>
+                <p>{{ publisher.description }}</p>
+
+                <p>
+                    <strong>Editors:</strong>
+                    {% for editor in publisher.editors.all %}
+                        {{ editor.username }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        None assigned
+                    {% endfor %}
+                </p>
+
+                <p class="mb-0">
+                    <strong>Journalists:</strong>
+                    {% for journalist in publisher.journalists.all %}
+                        {{ journalist.username }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        None assigned
+                    {% endfor %}
+                </p>
+            </div>
+        {% empty %}
+            <p>No publishers have been created yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

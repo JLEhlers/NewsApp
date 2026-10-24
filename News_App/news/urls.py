@@ -91,4 +91,14 @@ urlpatterns = [
         name="delete_newsletter",
     ),
     path("api/token/", obtain_auth_token, name="api_token"),
+    path(
+        "publishers/manage/",
+        views.manage_publishers,
+        name="manage_publishers",
+    ),
+    path(
+        "publishers/create/",
+        views.create_publisher,
+        name="create_publisher",
+    ),
 ]

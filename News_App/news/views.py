@@ -24,7 +24,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, PublisherForm
 from .models import Article, Newsletter, Publisher
 from .serializers import (
     ArticleSerializer,
@@ -74,9 +74,10 @@ def dashboard(request):
 
     if request.user.role == "journalist":
         pending_articles = Article.objects.filter(
-            author=request.user,
+            Q(author=request.user)
+            | Q(publisher__journalists=request.user),
             approved=False,
-        ).order_by("-created_at")
+        ).distinct().order_by("-created_at")
 
         return render(
             request,
@@ -535,13 +536,13 @@ def api_approved(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-        return Response(
-            {
-                "message": "Approved article received by the API.",
-                "article_id": article.id,
-            },
-            status=status.HTTP_200_OK,
-        )
+    return Response(
+        {
+            "message": "Approved article received by the API.",
+            "article_id": article.id,
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
 @login_required
@@ -894,3 +895,62 @@ def delete_newsletter(request, newsletter_id):
     newsletter.delete()
     messages.success(request, "Newsletter deleted.")
     return redirect("dashboard")
+
+
+# Manage publishers.
+
+@login_required
+def manage_publishers(request):
+    """Allow editors and administrators to manage publishers."""
+
+    is_editor = (
+        request.user.role == "editor"
+        or request.user.groups.filter(name="Editor").exists()
+    )
+
+    if not is_editor and not request.user.is_superuser:
+        return HttpResponseForbidden(
+            "You do not have permission to manage publishers."
+        )
+
+    publishers = Publisher.objects.all().order_by("name")
+
+    return render(
+        request,
+        "news/manage_publishers.html",
+        {"publishers": publishers},
+    )
+
+
+@login_required
+def create_publisher(request):
+    """Allow editors and administrators to create publishers."""
+
+    is_editor = (
+        request.user.role == "editor"
+        or request.user.groups.filter(name="Editor").exists()
+    )
+
+    if not is_editor and not request.user.is_superuser:
+        return HttpResponseForbidden(
+            "You do not have permission to create publishers."
+        )
+
+    if request.method == "POST":
+        form = PublisherForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                "Publisher created successfully.",
+            )
+            return redirect("manage_publishers")
+    else:
+        form = PublisherForm()
+
+    return render(
+        request,
+        "news/create_publisher.html",
+        {"form": form},
+    )
